@@ -9,13 +9,13 @@ namespace SwayNotificationCenter {
     static string ? config_path;
     // Dev args
     static bool skip_packaged_css = false;
+    static string ? custom_packaged_css;
 
     public class Swaync : Gtk.Application {
 
         static bool activated = false;
 
-        public signal void config_reload (
-            owned ConfigModel ? old_config, ConfigModel new_config);
+        public signal void config_reload (ConfigModel ? old_config, ConfigModel new_config);
 
         public Swaync () {
             Object (
@@ -39,7 +39,6 @@ namespace SwayNotificationCenter {
                 return;
             }
             activated = true;
-            ConfigModel.init (config_path);
             Functions.load_css (style_path);
 
             hold ();
@@ -74,9 +73,6 @@ namespace SwayNotificationCenter {
         }
 
         public static int main (string[] args) {
-            Gtk.init ();
-            Adw.init ();
-
             if (args.length > 0) {
                 for (uint i = 1; i < args.length; i++) {
                     string arg = args[i];
@@ -87,6 +83,9 @@ namespace SwayNotificationCenter {
                             break;
                         case "--skip-system-css":
                             skip_packaged_css = true;
+                            break;
+                        case "--custom-system-css":
+                            custom_packaged_css = args[++i];
                             break;
                         case "-c":
                         case "--config":
@@ -107,6 +106,16 @@ namespace SwayNotificationCenter {
                 }
             }
 
+            ConfigModel.init (config_path);
+
+            // Fixes custom themes messing with the default/custom CSS styling
+            if (ConfigModel.instance.ignore_gtk_theme) {
+                Environment.unset_variable ("GTK_THEME");
+            }
+
+            Gtk.init ();
+            Adw.init ();
+
             Functions.init ();
             self_settings = new Settings ("org.erikreider.swaync");
 
@@ -124,6 +133,8 @@ namespace SwayNotificationCenter {
             print ("\t -s, --style \t\t Use a custom Stylesheet file\n");
             print ("\t -c, --config \t\t Use a custom config file\n");
             print ("\t --skip-system-css \t Skip trying to parse the packaged Stylesheet file."
+                + " Useful for CSS debugging\n");
+            print ("\t --custom-system-css \t Pick a custom CSS file to use as the \"system\" CSS."
                 + " Useful for CSS debugging\n");
         }
     }

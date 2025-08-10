@@ -13,7 +13,7 @@
     /* The left and right button container */
     & > .widget-menubar-container {
       button {
-        border-radius: $border-radius;
+        border-radius: var(--border-radius);
         margin: 0 $margin / 2;
       }
     }
@@ -21,12 +21,18 @@
 
   /* The revealer buttons */
   & > revealer {
-    margin-top: $margin;
+    * {
+      margin-top: $margin;
 
-    button {
-      border-radius: $border-radius;
-      margin: $margin;
-      margin-top: 0;
+      button {
+        border-radius: var(--border-radius);
+        margin: $margin;
+        margin-top: 0;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
     }
   }
 
@@ -46,3 +52,4 @@
     background-color: var(--noti-bg-hover);
   } */
 }
+

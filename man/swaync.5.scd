@@ -9,6 +9,12 @@ swaync - Configuration file
 Using a text editor with a JSON language server is recommended when editing the
 config file to be able to detect config errors
 
+*ignore-gtk-theme* ++
+	type: bool ++
+	default: true ++
+	description: Unsets the GTK_THEME environment variable, fixing a lot of ++
+				 issues with GTK themes ruining the users custom CSS themes.
+
 *positionX* ++
 	type: string ++
 	default: right ++
@@ -110,8 +116,10 @@ config file to be able to detect config errors
 	type: string ++
 	default: "" ++
 	description: The preferred output to open the notification window ++
-				 (popup notifications). If the output is not found, the ++
-				 currently focused one is picked.
+				 (popup notifications). Can either be the monitor connector ++
+				 name (ex: "DP-1"), or the full name, manufacturer model serial ++
+				 (ex: "Acer Technologies XV272U V 503023B314202"). ++
+				 If the output is not found, the currently focused one is picked.
 
 *keyboard-shortcuts* ++
 	type: bool ++
@@ -163,8 +171,11 @@ config file to be able to detect config errors
 *control-center-height* ++
 	type: integer ++
 	default: 500 ++
-	description: The control center height in pixels ++
-		This setting is ignored when _fit-to-screen_ is set to "true".
+	description: Height of the control center in pixels. ++
+		A value of -1 means that it will fit to the content. ++
+		Ignored when 'fit-to-screen' is set to 'true'. ++
+		Also limited to the height of the monitor, unless ++
+		'layer-shell-cover-screen' is set to false.
 
 *control-center-width* ++
 	type: integer ++
@@ -174,7 +185,10 @@ config file to be able to detect config errors
 *control-center-preferred-output* ++
 	type: string ++
 	default: "" ++
-	description: The preferred output to open the control center. If the ++
+	description: The preferred output to open the control center. Can either ++
+				 be the monitor connector name (ex: "DP-1"), or ++
+				 the full name, manufacturer model serial ++
+				 (ex: "Acer Technologies XV272U V 503023B314202"). If the ++
 				 output is not found, the currently focused one is picked.
 
 *notification-visibility* ++
@@ -298,6 +312,17 @@ config file to be able to detect config errors
 		Example: "title#TheMainTitle" ++
 		To address this widget specifically in the css file use the css class .TheMainTitle ++
 	Widgets to customize: ++
+		*notifications*++
+			type: object ++
+			css class: widget-notifications ++
+			properties: ++
+				vexpand: ++
+					type: bool ++
+					optional: true ++
+					default: true ++
+					description: Whether or not the notifications widget ++
+								 should vertically expand or not ++
+			description: The Notifications Widget. ++
 		*title*++
 			type: object ++
 			css class: widget-title ++
@@ -358,7 +383,7 @@ config file to be able to detect config errors
 					description: Audio sources for the mpris widget to ignore. ++
 					Valid array values: ++
 						type: string ++
-						description: Audio source/app name. Regex alowed. Hint ++
+						description: Audio source/app name. Regex allowed. Hint ++
 							`$ qdbus | grep mpris` to find source names. ++
 				autohide: ++
 					type: bool ++

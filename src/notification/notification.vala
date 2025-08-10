@@ -32,6 +32,7 @@ namespace SwayNotificationCenter {
 
         public void set_reveal (bool state) {
             if (state == revealer.reveal_child) {
+                set_visible (state);
                 return;
             }
 
@@ -574,6 +575,7 @@ namespace SwayNotificationCenter {
                  child = alt_actions_box.get_first_child ()) {
                 alt_actions_box.remove (child);
             }
+            alt_actions_box.set_max_children_per_line (1);
 
             // Check for security codes
             string ? code = parse_body_codes ();
@@ -600,8 +602,10 @@ namespace SwayNotificationCenter {
                     flowbox_child.set_child (action_button);
                 }
 
+                int max_children_per_line = 0;
                 // Add notification specified actions
                 foreach (var action in param.actions.data) {
+                    max_children_per_line++;
                     Gtk.FlowBoxChild flowbox_child = new Gtk.FlowBoxChild ();
                     flowbox_child.add_css_class ("notification-action");
                     alt_actions_box.append (flowbox_child);
@@ -611,6 +615,7 @@ namespace SwayNotificationCenter {
                     action_button.set_can_focus (false);
                     flowbox_child.set_child (action_button);
                 }
+                alt_actions_box.set_max_children_per_line (max_children_per_line.clamp (1, 7));
             }
         }
 

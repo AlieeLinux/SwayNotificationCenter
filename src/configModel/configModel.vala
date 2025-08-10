@@ -60,8 +60,8 @@ namespace SwayNotificationCenter {
         public int get_priority () {
             switch (this) {
                 case APPLICATION:
-                default:
                     return Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION;
+                default:
                 case USER:
                     return Gtk.STYLE_PROVIDER_PRIORITY_USER;
             }
@@ -300,8 +300,6 @@ namespace SwayNotificationCenter {
 #endif
 
     public class ConfigModel : Object, Json.Serializable {
-
-        private static ConfigModel ? previous_config = null;
         private static ConfigModel ? _instance = null;
         private static string _path = "";
 
@@ -316,7 +314,7 @@ namespace SwayNotificationCenter {
 
         /** Get the static singleton and reload the config */
         public static unowned ConfigModel init (string ? path) {
-            _path = Functions.get_config_path (path);
+            _path = path;
             reload_config ();
             return _instance;
         }
@@ -352,16 +350,22 @@ namespace SwayNotificationCenter {
                 critical (e.message);
                 m = new ConfigModel ();
             }
-            previous_config = _instance;
+
+            ConfigModel ? previous_config = _instance;
 
             _instance = m;
             _path = path;
             debug (_instance.to_string ());
 
-            app.config_reload (previous_config, m);
+            if (app != null) {
+                app.config_reload (previous_config, m);
+            }
         }
 
         /* Properties */
+
+        /** Unsets the GTK_THEME env variable when true */
+        public bool ignore_gtk_theme { get; set; default = true; }
 
         /** The notifications and controlcenters horizontal alignment */
         public PositionX positionX { // vala-lint=naming-convention
@@ -390,7 +394,7 @@ namespace SwayNotificationCenter {
 
         /** The CSS loading priority */
         public CssPriority cssPriority { // vala-lint=naming-convention
-            get; set; default = CssPriority.APPLICATION;
+            get; set; default = CssPriority.USER;
         }
 
         /** The timeout for notifications with NORMAL priority */
@@ -468,6 +472,11 @@ namespace SwayNotificationCenter {
 
         /**
          * The preferred output to open the notification window (popup notifications).
+         *
+         * Can either be the monitor connector name (ex: "DP-1"),
+         * or the full name, manufacturer model serial
+         * (ex: "Acer Technologies XV272U V 503023B314202").
+         *
          * If the output is not found, the currently focused one is picked.
          */
         public string notification_window_preferred_output { get; set; default = ""; }
@@ -577,19 +586,22 @@ namespace SwayNotificationCenter {
         public bool relative_timestamps { get; set; default = true; }
 
         /**
-         * Notification center's height, in pixels.
-         * Set `fit_to_screen` to true to ignore the height setting.
+         * Height of the control center in pixels. A value of -1 means that it
+         * will fit to the content. Ignored when 'fit-to-screen' is set to 'true'.
+         * Also limited to the height of the monitor, unless 'layer-shell-cover-screen'
+         * is set to false.
          */
-        private const int CONTROL_CENTER_MINIMUM_HEIGHT = 300;
-        private const int CONTROL_CENTER_DEFAULT_HEIGHT = 300;
-        private int _control_center_height = CONTROL_CENTER_DEFAULT_HEIGHT;
+        private int _control_center_height = 500;
         public int control_center_height {
             get {
                 return _control_center_height;
             }
             set {
-                _control_center_height = value > CONTROL_CENTER_MINIMUM_HEIGHT
-                    ? value : CONTROL_CENTER_MINIMUM_HEIGHT;
+                if (value < 1) {
+                    _control_center_height = -1;
+                    return;
+                }
+                _control_center_height = value;
             }
         }
 
@@ -611,6 +623,11 @@ namespace SwayNotificationCenter {
 
         /**
          * The preferred output to open the control center.
+         *
+         * Can either be the monitor connector name (ex: "DP-1"),
+         * or the full name, manufacturer model serial
+         * (ex: "Acer Technologies XV272U V 503023B314202").
+         *
          * If the output is not found, the currently focused one is picked.
          */
         public string control_center_preferred_output { get; set; default = ""; }

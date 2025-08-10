@@ -80,6 +80,9 @@ namespace SwayNotificationCenter {
             // Load packaged CSS as backup
             string system_css = get_style_path (null, true);
             system_css = File.new_for_path (system_css).get_path () ?? system_css;
+            if (custom_packaged_css != null) {
+                system_css = custom_packaged_css;
+            }
             if (!skip_packaged_css) {
                 message ("Loading CSS: \"%s\"", system_css);
                 system_css_provider.load_from_path (system_css);
@@ -366,7 +369,17 @@ namespace SwayNotificationCenter {
                 Object ? obj = monitors.get_item (i);
                 if (obj == null || !(obj is Gdk.Monitor)) continue;
                 unowned Gdk.Monitor monitor = (Gdk.Monitor) obj;
+
                 if (monitor.connector == name) {
+                    return monitor;
+                }
+
+                // Try matching a string consisting of the manufacturer + model + serial number.
+                // Just like Sway does (sway-output(5) man page)
+                string id = "%s %s %s".printf (monitor.manufacturer,
+                                               monitor.model,
+                                               monitor.description);
+                if (id == name) {
                     return monitor;
                 }
             }
